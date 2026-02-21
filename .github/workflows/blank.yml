@@ -1,0 +1,66 @@
+-- MM2 Underground Coin Collector
+-- Features: Speed 25, Nearest Target, Underground Position
+
+local player = game.Players.LocalPlayer
+local MAX_SPEED = 25
+local UNDERGROUND_DEPTH = 5.5 -- Adjust this if you can't reach coins
+local running = true
+
+print("Delta Underground Script Loaded...")
+
+-- Function to find the nearest coin to the player
+local function findNearestCoin()
+    local character = player.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local nearest = nil
+    local minDist = math.huge
+    
+    -- MM2 stores coins in workspace.Normal.CoinContainer
+    local container = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
+    
+    if container then
+        for _, coin in pairs(container:GetChildren()) do
+            if coin:IsA("BasePart") then
+                local dist = (root.Position - coin.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    nearest = coin
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+-- Main Loop
+task.spawn(function()
+    while running do
+        task.wait(0.1)
+        local character = player.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character and character:FindFirstChild("Humanoid")
+
+        if root and humanoid then
+            humanoid.WalkSpeed = MAX_SPEED
+            local target = findNearestCoin()
+
+            if target then
+                -- Move character to the underground position of the coin
+                local targetPos = target.Position - Vector3.new(0, UNDERGROUND_DEPTH, 0)
+                humanoid:MoveTo(targetPos)
+                
+                -- Force the character to stay at that depth
+                root.CFrame = CFrame.new(root.Position.X, targetPos.Y, root.Position.Z)
+            end
+        end
+    end
+end)
+
+-- Startup Notification
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Script Active",
+    Text = "Underground Farm running at speed 25",
+    Duration = 5
+})
