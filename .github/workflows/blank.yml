@@ -1,86 +1,52 @@
--- MM2 ULTIMATE FARM WITH GUI
--- SETTINGS: SPEED 25, UNDERGROUND, ENGLISH
+-- MM2 Security & Panic Utility
+-- Designed for Delta Executor
 
-local Player = game.Players.LocalPlayer
-local CoreGui = game:GetService("CoreGui")
-local RunService = game:GetService("RunService")
-local Speed = 25
-local Depth = 7
-
--- PREVENT VOID DEATH
-workspace.FallenPartsDestroyHeight = -99999
-
--- CREATE GUI
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local StatusLabel = Instance.new("TextLabel")
-local SpeedLabel = Instance.new("TextLabel")
+local PanicButton = Instance.new("TextButton")
+local TitleLabel = Instance.new("TextLabel")
 
-ScreenGui.Name = "MM2FarmGui"
-ScreenGui.Parent = CoreGui
+-- GUI Setup
+ScreenGui.Name = "SecurityHub"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+MainFrame.Size = UDim2.new(0, 180, 0, 100)
 MainFrame.Active = true
-MainFrame.Draggable = true
+MainFrame.Draggable = true -- You can move it on the screen
 
-Title.Parent = MainFrame
-Title.Text = "MM2 AUTO-FARM"
-Title.Size = UDim2.new(1, 0, 0.3, 0)
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18
+TitleLabel.Parent = MainFrame
+TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+TitleLabel.Text = "SECURITY TOOLS"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextSize = 14
 
-StatusLabel.Parent = MainFrame
-StatusLabel.Text = "Status: Running"
-StatusLabel.Position = UDim2.new(0, 0, 0.4, 0)
-StatusLabel.Size = UDim2.new(1, 0, 0.3, 0)
-StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-StatusLabel.BackgroundTransparency = 1
+-- Panic Button: Disconnects you instantly to prevent trades/theft
+PanicButton.Name = "PanicButton"
+PanicButton.Parent = MainFrame
+PanicButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+PanicButton.Position = UDim2.new(0.1, 0, 0.45, 0)
+PanicButton.Size = UDim2.new(0.8, 0, 0.4, 0)
+PanicButton.Font = Enum.Font.SourceSansBold
+PanicButton.Text = "EMERGENCY LEAVE"
+PanicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+PanicButton.TextSize = 16
 
-SpeedLabel.Parent = MainFrame
-SpeedLabel.Text = "Current Speed: " .. tostring(Speed)
-SpeedLabel.Position = UDim2.new(0, 0, 0.7, 0)
-SpeedLabel.Size = UDim2.new(1, 0, 0.3, 0)
-SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-SpeedLabel.BackgroundTransparency = 1
+PanicButton.MouseButton1Click:Connect(function()
+    print("Security Triggered: Leaving Game...")
+    game:Shutdown()
+end)
 
--- FARM LOGIC
-local function GetTarget()
-    local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return nil end
-    local nearest = nil
-    local dist = math.huge
-    local coins = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
-    if coins then
-        for _, v in pairs(coins:GetChildren()) do
-            if v:IsA("BasePart") then
-                local d = (root.Position - v.Position).Magnitude
-                if d < dist then dist = d nearest = v end
-            end
-        end
-    end
-    return nearest
-end
-
-RunService.Stepped:Connect(function()
-    local char = Player.Character
-    if char then
-        for _, p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = false end
-        end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChild("Humanoid")
-        if root and hum then
-            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            root.Velocity = Vector3.new(0,0,0)
-            local target = GetTarget()
-            if target then
-                hum.WalkSpeed = Speed
-                local targetPos = target.Position - Vector3.new(0, Depth, 0)
-                root.CFrame = CFrame.new(root.Position.
+-- Notify user
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Security Script";
+    Text = "English Version Loaded Successfully";
+    Duration = 5;
+})
