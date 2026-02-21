@@ -1,0 +1,69 @@
+-- MM2 MASTER SCRIPT
+-- FIXES: Falling Logic, Void Death, Velocity & Noclip
+
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Speed = 25
+local Depth = 7 -- Increased depth for safety
+
+-- MISSING PART 1: Prevent Void Death (Stops the game from killing you underground)
+workspace.FallenPartsDestroyHeight = -999999
+
+-- MISSING PART 2: Force Humanoid State (Stops the "Falling" animation so MoveTo works)
+local function FixState(humanoid)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+end
+
+print("System Initialized...")
+
+local function GetTarget()
+    local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local nearest = nil
+    local dist = math.huge
+    local coins = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
+    if coins then
+        for _, v in pairs(coins:GetChildren()) do
+            if v:IsA("BasePart") or v:FindFirstChild("CoinVisual") then
+                local d = (root.Position - v.Position).Magnitude
+                if d < dist then dist = d nearest = v end
+            end
+        end
+    end
+    return nearest
+end
+
+RunService.Stepped:Connect(function()
+    local char = Player.Character
+    if char then
+        -- Force Noclip
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+        
+        local root = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChild("Humanoid")
+        
+        if root and hum then
+            FixState(hum) -- Keep Humanoid active
+            root.Velocity = Vector3.new(0,0,0) -- Stabilize physics
+            
+            local target = GetTarget()
+            if target then
+                hum.WalkSpeed = Speed
+                local targetPos = target.Position - Vector3.new(0, Depth, 0)
+                
+                -- MISSING PART 3: Hard CFrame Lock (Forces your character to stay underground)
+                root.CFrame = CFrame.new(root.Position.X, targetPos.Y, root.Position.Z)
+                hum:MoveTo(targetPos)
+            end
+        end
+    end
+end)
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "MM2 FIXED",
+    Text = "All Physics Bugs Patched | Speed 25",
+    Duration = 5
+})
