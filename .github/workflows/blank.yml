@@ -1,68 +1,66 @@
-MM2 SMART UNDERGROUND COLLECTOR
-Features: Speed 25, Target Nearest, Underground Mode
+-- MM2 UNDERGROUND AUTO-FARM
+-- Settings: Speed 25, Underground Mode, Full English Logic
 
 local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local WALK_SPEED = 25
-local UNDERGROUND_DEPTH = 5.5 -- Adjust if you are too deep or too high
-local Running = true
+local DEPTH_OFFSET = 6
 
-print("English Auto-Farm Script Loaded...")
+print("Initializing English Script...")
 
--- Function to find the nearest coin in the map
-local function getNearestCoin()
-    local Character = Player.Character
-    local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-    if not RootPart then return nil end
+-- Function to find the nearest coin
+local function findNearestCoin()
+    local character = Player.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return nil end
 
-    local Target = nil
-    local ShortestDistance = math.huge
-    
-    -- MM2 Coin folder location
-    local Container = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
-    
-    if Container then
-        for _, coin in pairs(Container:GetChildren()) do
-            if coin:IsA("BasePart") or coin:FindFirstChild("CoinVisual") then
-                local distance = (RootPart.Position - coin.Position).Magnitude
-                if distance < ShortestDistance then
-                    ShortestDistance = distance
-                    Target = coin
+    local nearestTarget = nil
+    local minDistance = math.huge
+    local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
+
+    if coinContainer then
+        for _, coin in pairs(coinContainer:GetChildren()) do
+            if coin:IsA("BasePart") then
+                local distance = (rootPart.Position - coin.Position).Magnitude
+                if distance < minDistance then
+                    minDistance = distance
+                    nearestTarget = coin
                 end
             end
         end
     end
-    return Target
+    return nearestTarget
 end
 
--- Main Farming Loop
-task.spawn(function()
-    while Running do
-        task.wait(0.1)
-        local Character = Player.Character
-        local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-        local Humanoid = Character and Character:FindFirstChild("Humanoid")
-
-        if RootPart and Humanoid then
-            -- Set speed to exactly 25
-            Humanoid.WalkSpeed = WALK_SPEED
-            
-            local TargetCoin = getNearestCoin()
-            if TargetCoin then
-                -- Target position is right under the coin
-                local TargetPos = TargetCoin.Position - Vector3.new(0, UNDERGROUND_DEPTH, 0)
-                
-                -- Lock character Y-Axis to stay underground
-                RootPart.CFrame = CFrame.new(RootPart.Position.X, TargetPos.Y, RootPart.Position.Z)
-                
-                -- Move towards the coin's position
-                Humanoid:MoveTo(TargetPos)
+-- Core Loop for Movement and Noclip
+RunService.Stepped:Connect(function()
+    local character = Player.Character
+    if character then
+        -- Enable Noclip to move through the floor
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
             end
+        end
+
+        local root = character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character:FindFirstChild("Humanoid")
+        local targetCoin = findNearestCoin()
+
+        if root and humanoid and targetCoin then
+            humanoid.WalkSpeed = WALK_SPEED
+            local targetPosition = targetCoin.Position - Vector3.new(0, DEPTH_OFFSET, 0)
+            
+            -- Keep character at fixed underground depth
+            root.CFrame = CFrame.new(root.Position.X, targetPosition.Y, root.Position.Z)
+            
+            -- Move toward the target coin
+            humanoid:MoveTo(targetPosition)
         end
     end
 end)
 
--- Notification
+-- Status Notification
 game.StarterGui:SetCore("SendNotification", {
     Title = "FARM ACTIVE",
     Text = "Speed: 25 | Mode: Underground",
