@@ -1,22 +1,56 @@
--- MM2 MASTER SCRIPT
--- FIXES: Falling Logic, Void Death, Velocity & Noclip
+-- MM2 ULTIMATE FARM WITH GUI
+-- SETTINGS: SPEED 25, UNDERGROUND, ENGLISH
 
 local Player = game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local Speed = 25
-local Depth = 7 -- Increased depth for safety
+local Depth = 7
 
--- MISSING PART 1: Prevent Void Death (Stops the game from killing you underground)
-workspace.FallenPartsDestroyHeight = -999999
+-- PREVENT VOID DEATH
+workspace.FallenPartsDestroyHeight = -99999
 
--- MISSING PART 2: Force Humanoid State (Stops the "Falling" animation so MoveTo works)
-local function FixState(humanoid)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-end
+-- CREATE GUI
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local StatusLabel = Instance.new("TextLabel")
+local SpeedLabel = Instance.new("TextLabel")
 
-print("System Initialized...")
+ScreenGui.Name = "MM2FarmGui"
+ScreenGui.Parent = CoreGui
 
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 100)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Parent = MainFrame
+Title.Text = "MM2 AUTO-FARM"
+Title.Size = UDim2.new(1, 0, 0.3, 0)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+
+StatusLabel.Parent = MainFrame
+StatusLabel.Text = "Status: Running"
+StatusLabel.Position = UDim2.new(0, 0, 0.4, 0)
+StatusLabel.Size = UDim2.new(1, 0, 0.3, 0)
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+StatusLabel.BackgroundTransparency = 1
+
+SpeedLabel.Parent = MainFrame
+SpeedLabel.Text = "Current Speed: " .. tostring(Speed)
+SpeedLabel.Position = UDim2.new(0, 0, 0.7, 0)
+SpeedLabel.Size = UDim2.new(1, 0, 0.3, 0)
+SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+SpeedLabel.BackgroundTransparency = 1
+
+-- FARM LOGIC
 local function GetTarget()
     local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if not root then return nil end
@@ -25,7 +59,7 @@ local function GetTarget()
     local coins = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
     if coins then
         for _, v in pairs(coins:GetChildren()) do
-            if v:IsA("BasePart") or v:FindFirstChild("CoinVisual") then
+            if v:IsA("BasePart") then
                 local d = (root.Position - v.Position).Magnitude
                 if d < dist then dist = d nearest = v end
             end
@@ -37,33 +71,16 @@ end
 RunService.Stepped:Connect(function()
     local char = Player.Character
     if char then
-        -- Force Noclip
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = false end
+        for _, p in pairs(char:GetDescendants()) do
+            if p:IsA("BasePart") then p.CanCollide = false end
         end
-        
         local root = char:FindFirstChild("HumanoidRootPart")
         local hum = char:FindFirstChild("Humanoid")
-        
         if root and hum then
-            FixState(hum) -- Keep Humanoid active
-            root.Velocity = Vector3.new(0,0,0) -- Stabilize physics
-            
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            root.Velocity = Vector3.new(0,0,0)
             local target = GetTarget()
             if target then
                 hum.WalkSpeed = Speed
                 local targetPos = target.Position - Vector3.new(0, Depth, 0)
-                
-                -- MISSING PART 3: Hard CFrame Lock (Forces your character to stay underground)
-                root.CFrame = CFrame.new(root.Position.X, targetPos.Y, root.Position.Z)
-                hum:MoveTo(targetPos)
-            end
-        end
-    end
-end)
-
-game.StarterGui:SetCore("SendNotification", {
-    Title = "MM2 FIXED",
-    Text = "All Physics Bugs Patched | Speed 25",
-    Duration = 5
-})
+                root.CFrame = CFrame.new(root.Position.
